@@ -40,27 +40,28 @@ const RoomAllocation = (props) => {
   useEffect(() => {
     onChange(allocations);
 
+    // update total allocated guest num
     let _allocatedGuestNum = 0;
     allocations.forEach((alloc) => {
       _allocatedGuestNum = _allocatedGuestNum + alloc.adult + alloc.child;
     });
     setAllocatedGuestNum(_allocatedGuestNum);
-  }, [allocations]);
 
-  useEffect(() => {
-    if (guest - allocatedGuestNum === 0) {
-      setMaxGuestAlloc(allocations.map((alloc) => alloc.adult + alloc.child));
-    } else {
-      setMaxGuestAlloc(
-        Array.from({ length: room }).fill(MAX_GUEST_NUM_IN_ROOM)
-      );
-    }
-  }, [guest, allocatedGuestNum]);
+    // update max guest num of each room
+    setMaxGuestAlloc(
+      allocations.map((alloc) =>
+        Math.min(
+          MAX_GUEST_NUM_IN_ROOM,
+          alloc.adult + alloc.child + guest - _allocatedGuestNum
+        )
+      )
+    );
+  }, [allocations]);
 
   const onRoomChange = (result, roomIndex) => {
     setAllocations((prevAllocations) => {
       const newAlloc = Array.from(prevAllocations);
-      newAlloc[roomIndex] = { ...newAlloc[roomIndex], ...result };
+      newAlloc[roomIndex] = { ...result };
       return newAlloc;
     });
   };
