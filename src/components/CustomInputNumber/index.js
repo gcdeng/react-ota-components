@@ -47,6 +47,10 @@ const Container = styled.div`
 `;
 
 let _longPressTimeoutId;
+const ACTIONS = {
+  INCREMENT: "increment",
+  DECREMENT: "decrement",
+};
 
 const CustomInputNumber = (props) => {
   const {
@@ -54,32 +58,61 @@ const CustomInputNumber = (props) => {
     min = 0,
     max,
     step = 1,
-    value = 0,
+    value: defaultValue = 0,
     disabled = false,
     onChange = () => {},
     onBlur = () => {},
   } = props;
 
   const inputRef = useRef(null);
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(defaultValue);
   const [isDecButtonDisabled, setIsDecButtonDisabled] = useState(
-    disabled || value <= min
+    disabled || defaultValue <= min
   );
   const [isIncButtonDisabled, setIsIncButtonDisabled] = useState(
-    disabled || value >= max
+    disabled || defaultValue >= max
   );
+
+  useEffect(() => {
+    onChange({ target: inputRef.current });
+  }, [inputValue]);
+
+  useEffect(() => {
+    // control button disable state
+    setIsIncButtonDisabled(
+      disabled || inputValue === max || inputValue + step > max
+    );
+    setIsDecButtonDisabled(
+      disabled || inputValue === min || inputValue - step < min
+    );
+  }, [disabled, inputValue]);
+
+  useEffect(() => {
+    // in case the button not emit mouseup event when it become disable state, so we need to stop long press manually
+    if (isDecButtonDisabled || isIncButtonDisabled) {
+      stopLongPressButton();
+    }
+  }, [isDecButtonDisabled, isIncButtonDisabled]);
 
   const onInputChange = (event) => {
     const nevValue = parseInt(event.target.value);
-    console.log(nevValue);
-    if (nevValue <= max && nevValue >= min) {
-      setInputValue(nevValue);
-    }
+    !isNaN(nevValue) && setInputValue(`${nevValue}`);
   };
 
-  const onClickButton = ({ type }) => {
+  const onInputBlur = (event) => {
+    // handle if value exceed limit by typing directly
+    if (inputValue > max) {
+      setInputValue(max);
+    }
+    if (inputValue < min) {
+      setInputValue(min);
+    }
+    onBlur(event);
+  };
+
+  const updateInputValue = ({ type }) => {
     switch (type) {
-      case "inc": {
+      case ACTIONS.INCREMENT: {
         setInputValue((prevValue) => {
           const nextValue = prevValue + step;
           if (nextValue <= max) {
@@ -90,7 +123,7 @@ const CustomInputNumber = (props) => {
         });
         break;
       }
-      case "dec": {
+      case ACTIONS.DECREMENT: {
         setInputValue((prevValue) => {
           const nextValue = prevValue - step;
           if (nextValue >= min) {
@@ -107,37 +140,23 @@ const CustomInputNumber = (props) => {
   };
 
   const longPressButton = ({ type }) => {
-    onClickButton({ type });
-    _longPressTimeoutId && clearInterval(_longPressTimeoutId);
+    updateInputValue({ type });
+    clearInterval(_longPressTimeoutId);
     _longPressTimeoutId = setInterval(() => {
       longPressButton({ type });
     }, 500);
   };
 
-  const cancelLongPressButton = () => {
+  const stopLongPressButton = () => {
     clearInterval(_longPressTimeoutId);
   };
-
-  useEffect(() => {
-    setIsIncButtonDisabled(inputValue >= max);
-    setIsDecButtonDisabled(inputValue <= min);
-    if (inputValue >= max || inputValue <= min) {
-      cancelLongPressButton();
-    }
-    onChange({ target: inputRef.current });
-  }, [inputValue]);
-
-  useEffect(() => {
-    setIsIncButtonDisabled(disabled || value >= max);
-    setIsDecButtonDisabled(disabled || value <= min);
-  }, [disabled]);
 
   return (
     <Container>
       <Button
         disabled={isDecButtonDisabled}
-        onMouseDown={() => longPressButton({ type: "dec" })}
-        onMouseUp={cancelLongPressButton}
+        onMouseDown={() => longPressButton({ type: ACTIONS.DECREMENT })}
+        onMouseUp={stopLongPressButton}
       >
         -
       </Button>
@@ -149,14 +168,14 @@ const CustomInputNumber = (props) => {
         max={max}
         value={inputValue}
         disabled={disabled}
-        onBlur={onBlur}
+        onBlur={onInputBlur}
         onChange={onInputChange}
         ref={inputRef}
       />
       <Button
         disabled={isIncButtonDisabled}
-        onMouseDown={() => longPressButton({ type: "inc" })}
-        onMouseUp={cancelLongPressButton}
+        onMouseDown={() => longPressButton({ type: ACTIONS.INCREMENT })}
+        onMouseUp={stopLongPressButton}
       >
         +
       </Button>
