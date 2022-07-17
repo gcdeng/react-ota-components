@@ -99,7 +99,7 @@ const CustomInputNumber = (props) => {
     !isNaN(nevValue) &&
       nevValue <= max &&
       nevValue >= min &&
-      setInputValue(`${nevValue}`);
+      setInputValue(nevValue);
   };
 
   const onInputBlur = (event) => {
