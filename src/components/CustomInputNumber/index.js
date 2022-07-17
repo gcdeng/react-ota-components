@@ -85,7 +85,7 @@ const CustomInputNumber = (props) => {
     setIsDecButtonDisabled(
       disabled || inputValue === min || inputValue - step < min
     );
-  }, [disabled, inputValue]);
+  }, [disabled, inputValue, max, min]);
 
   useEffect(() => {
     // in case the button not emit mouseup event when it become disable state, so we need to stop long press manually
@@ -96,7 +96,10 @@ const CustomInputNumber = (props) => {
 
   const onInputChange = (event) => {
     const nevValue = parseInt(event.target.value);
-    !isNaN(nevValue) && setInputValue(`${nevValue}`);
+    !isNaN(nevValue) &&
+      nevValue <= max &&
+      nevValue >= min &&
+      setInputValue(`${nevValue}`);
   };
 
   const onInputBlur = (event) => {
@@ -167,7 +170,7 @@ const CustomInputNumber = (props) => {
         min={min}
         max={max}
         value={inputValue}
-        disabled={disabled}
+        disabled={disabled || inputValue >= max}
         onBlur={onInputBlur}
         onChange={onInputChange}
         ref={inputRef}
