@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import CustomInputNumber from "../CustomInputNumber";
 import styled from "styled-components";
@@ -41,12 +41,12 @@ const Room = (props) => {
     setGuestNum(allocation.adult + allocation.child);
   }, [allocation]);
 
-  const onInputChange = (event) => {
+  const onInputChange = useCallback((event) => {
     setAllocation((prevAllocation) => ({
       ...prevAllocation,
       [event.target.name]: parseInt(event.target.value),
     }));
-  };
+  }, []);
 
   const onInputBlur = (event) => {
     console.log(event.target.name, event.target.value);

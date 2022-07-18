@@ -85,7 +85,7 @@ const CustomInputNumber = (props) => {
     setIsDecButtonDisabled(
       disabled || inputValue === min || inputValue - step < min
     );
-  }, [disabled, inputValue, max, min]);
+  }, [disabled, inputValue, max, min, step]);
 
   useEffect(() => {
     // in case the button not emit mouseup event when it become disable state, so we need to stop long press manually

@@ -56,7 +56,7 @@ const RoomAllocation = (props) => {
         )
       )
     );
-  }, [allocations]);
+  }, [allocations, guest]);
 
   const onRoomChange = (result, roomIndex) => {
     setAllocations((prevAllocations) => {
